@@ -145,6 +145,26 @@ class GameWithDnD(GameWithObjects):
                 self.drag = None
         GameWithObjects.Events(self, event)
 
+class RotatingBall(Ball):
+    def __init__(self, *argp, **argn):
+        Ball.__init__(self, *argp, **argn)
+        self.angle = 0
+        self.direction = random.choice([-1, 1])
+        self.orig_surface = self.surface
+
+    def logic(self, surface):
+        self.angle += 1
+        if self.angle > 360:
+            self.angle = 1
+        old_center = self.rect.center
+        self.surface = pygame.transform.rotate(self.orig_surface, self.direction * self.angle)
+        self.rect = self.surface.get_rect()
+        self.rect.center = old_center
+        Ball.logic(self, surface)
+
+
+
+
 Init(SIZE)
 Game = Universe(50)
 
@@ -152,7 +172,7 @@ Run = GameWithDnD()
 for i in xrange(5):
     x, y = random.randrange(screenrect.w), random.randrange(screenrect.h)
     dx, dy = 1+random.random()*5, 1+random.random()*5
-    Run.objects.append(Ball("ball.gif",(x,y),(dx,dy)))
+    Run.objects.append(RotatingBall("ball.gif",(x,y),(dx,dy)))
 
 Game.Start()
 Run.Init()
