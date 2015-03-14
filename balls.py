@@ -5,6 +5,7 @@ import pygame
 import random
 
 SIZE = 640, 480
+GRAVITY = 0.2
 
 def intn(*arg):
     return map(int,arg)
@@ -60,6 +61,7 @@ class Ball:
         '''Proceed some action'''
         if self.active:
             self.pos = self.pos[0]+self.speed[0], self.pos[1]+self.speed[1]
+            self.speed = self.speed[0], self.speed[1] + GRAVITY
 
     def logic(self, surface):
         x,y = self.pos
