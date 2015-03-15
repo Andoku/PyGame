@@ -103,15 +103,37 @@ class GameWithObjects(GameMode):
     def __init__(self, objects=[]):
         GameMode.__init__(self)
         self.objects = objects
+        self.bounced_objects = set()
 
     def locate(self, pos):
         return [obj for obj in self.objects if obj.rect.collidepoint(pos)]
+
+    def collide(self, obj1, obj2):
+        mask1 = pygame.mask.from_surface(obj1.surface)
+        mask2 = pygame.mask.from_surface(obj2.surface)
+        offset = int(obj1.pos[0] - obj2.pos[0]), int(obj1.pos[1] - obj2.pos[1])
+        return mask1.overlap(mask2, offset)
+
+    def bounce(self, obj1, obj2):
+        obj1.speed, obj2.speed = obj2.speed, obj1.speed
+        self.bounced_objects.add(frozenset((obj1, obj2)))
+
+    def bounced(self, obj1, obj2):
+        return frozenset((obj1, obj2)) in self.bounced_objects
 
     def Events(self, event):
         GameMode.Events(self, event)
         if event.type == Game.tickevent:
             for obj in self.objects:
                 obj.action()
+            for obj1 in self.objects:
+                for obj2 in self.objects:
+                    if obj1 == obj2:
+                        continue
+                    elif self.collide(obj1, obj2) and not self.bounced(obj1, obj2):
+                        self.bounce(obj1, obj2) 
+                    elif self.bounced(obj1, obj2):
+                        self.bounced_objects.remove(frozenset((obj1, obj2)))
 
     def Logic(self, surface):
         GameMode.Logic(self, surface)
@@ -171,7 +193,7 @@ Init(SIZE)
 Game = Universe(50)
 
 Run = GameWithDnD()
-for i in xrange(5):
+for i in xrange(3):
     x, y = random.randrange(screenrect.w), random.randrange(screenrect.h)
     dx, dy = 1+random.random()*5, 1+random.random()*5
     Run.objects.append(RotatingBall("ball.gif",(x,y),(dx,dy)))
